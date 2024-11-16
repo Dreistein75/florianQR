@@ -4,7 +4,8 @@
 #include <limits>
 #include <cmath>
 
-#include "Matrix.h"
+//#include "Matrix.h"
+#include "Matrix.cpp"
 
 using namespace std;
 
@@ -76,7 +77,7 @@ int householder(double** M, double* alpha, int n, int m){
         res->replace(i, A);
         Matrix* tmp = A->cancelRowAndCol(0,0);
         delete A;
-        Matrix* A = tmp;
+        A = tmp;
     }
     delete A;
 
@@ -92,7 +93,7 @@ int householder(double** M, double* alpha, int n, int m){
 
 int doStep(Matrix** A, double* beta) {
     *beta = calcBeta(*A);
-    if (*beta = 0) {
+    if (*beta == 0) {
         return -1;
     }
 
@@ -109,6 +110,7 @@ int doStep(Matrix** A, double* beta) {
         delete x;
     }
 
+    return 0;
 }
 
 Matrix* v_h(Matrix* A) {
@@ -153,6 +155,8 @@ double scalarProduct(Matrix* A, Matrix* B){
         }
         sum += (*a) * (*b);
     }
+
+    return sum;
 }
 
 int sgn(double x) {
@@ -247,4 +251,13 @@ bool yes_no_question(string question) {
     } while(answer != 'y' && answer != 'n');
 
     return answer == 'y';
+}
+
+int rw_subst(double** A, double* alpha, int n, double* b)
+{
+    // bau dir hier eine Matrix R   <--- wirst du wahrscheinlich nicht brauchen
+    // Löse mit Rückwärtssubstitution  Rx = b
+    // Überschreibe b mit der Lösung
+
+
 }
