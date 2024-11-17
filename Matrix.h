@@ -46,6 +46,7 @@ public:
     Matrix* scale(double);
     Matrix* transpose();
     Matrix* adjoint();
+    Matrix* extractColN(int);
 
     double* getCol(int);
     double* getEntry(int, int);
@@ -53,5 +54,17 @@ public:
     int replaceColumn(int, Matrix);
     void replace(int, Matrix*);
 
+    static Matrix unit_vector(int n) {
+        double** etr = new double*[n];
+        for (int i = 0; i < n; i++)
+        {
+            etr[i] = new double[1];
+            etr[i][0] = 0;
+        }
+
+        etr[0][0] = 1;
+
+        return Matrix(n, 1, etr);
+    }
 };
 

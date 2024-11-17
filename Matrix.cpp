@@ -518,22 +518,38 @@ int Matrix::replaceColumn(int targetCol, Matrix A) {
     for (int i = 0; i < rows; i++) {
         entries[i][targetCol] = *(A.getEntry(i,targetCol));
     }
+
     return 0;
 }
 
 void Matrix::replace(int targetCol, Matrix* A) {
-    if(targetCol < 0 || targetCol >= cols) {
+    if(targetCol < 0 || targetCol >= cols) {    // kann nicht vorkommen bei meiner Implementierung
+        return;
+    }
+    if(A->getRows() != rows - targetCol || A->getCols() != cols - targetCol) {    // kann nicht vorkommen bei meiner Implementierung
         return;
     }
 
-    for (int i = targetCol; i < A->getRows(); i++){
-        entries[i][targetCol] = *(A->getEntry(i,targetCol));
+    for (int i = targetCol; i < A->getRows(); i++) {
+        double hallo = *(A->getEntry(i - targetCol,0));
+        entries[i][targetCol] = 5;
+        hallo = 4;
     }
-    for (int i = targetCol; i < A->getCols(); i++){
-        entries[targetCol][i] = *(A->getEntry(targetCol,i));
+
+    for (int i = targetCol; i < A->getCols(); i++) {
+        entries[targetCol][i] = *(A->getEntry(0,i - targetCol));
     }
 }
 
+Matrix* Matrix::extractColN(int n)
+{
+    double** new_entries = new double*[rows];
+    for (int i = 0; i < rows; i++)
+    {
+        new_entries[i] = new double[1];
+        new_entries[i][0] = entries[i][n];
+    }
 
-
+    return new Matrix(rows, 1, new_entries);
+}
 
