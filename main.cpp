@@ -68,7 +68,7 @@ int householder(Matrix* M, double* alpha)
     const int numberOfCols = M->getCols();
     double beta;    // Variable für den Diagonaleintrag im i-ten Schritt (s.u.); wird nach Berechnung in Vektor alpha gespeichert
 
-    for (int i = 0; i < numberOfCols - 1; i++)    // endet bei vorletzter Spalte da in letzter Spalte nichts zu tun
+    for (int i = 0; i < numberOfCols; i++)
     {
         // Folgende Zeile macht den Arbeitsschritt des Algorithmus angewandt auf "work" und überschreibt dabei "work" und überschreibt beta
         // deswegen wird auch die Adresse von beta übergeben, nicht beta als Wert. Das "stepResult" ist -1 bei Fehlern
@@ -82,30 +82,30 @@ int householder(Matrix* M, double* alpha)
 
         alpha[i] = beta;
 
-        // M wurde in doStep() überschrieben. Speichern wollen wir die erste Spalte/Zeile von M bevor wir sie dann
-        // wegschneiden und die for-Schleife von vorne beginnen mit einem M das kleiner ist weil wir weggeschnitten
+        // work wurde in doStep() überschrieben. Speichern wollen wir die erste Spalte/Zeile von work bevor wir sie dann
+        // wegschneiden und die for-Schleife von vorne beginnen mit einem work das kleiner ist weil wir weggeschnitten
         // haben.
 
         if (M->replace(i, work) == -1)
         {
-            // die replace()-Methode überschreibt in Matrix "res" folgende Einträge:
-            // Vom Diagonaleintrag (i,i) senkrecht runter wird ersetzt durch die erste Spalte von M
-            // und vom Diagonaleintrag (i,i) wird waagrecht nach rechts ersetzt durch erste Zeile von M
+            // die replace()-Methode überschreibt in Matrix "M" folgende Einträge:
+            // Vom Diagonaleintrag (i,i) senkrecht runter wird ersetzt durch die erste Spalte von work
+            // und vom Diagonaleintrag (i,i) wird waagrecht nach rechts ersetzt durch erste Zeile von work
             // Der Rückgabewert ist -1 wenn was schief läuft (was es bei sinnvollen Eingaben nicht tut!)
 
             return 1;
         }
 
-        if (work->cancelRowAndCol(0,0) == -1)  // Streiche in M Spalte 1 und Zeile 1 (haben Index 0); Rückgabe = -1 nur wenn Fehler (hier: Nie)
+        if (i < numberOfCols - 1)   // Streichen der ersten Zeile/Spalte nur Sinnvoll wenn noch mindestens 2 Spalten da sind.
         {
-            return 1;
+            if (work->cancelRowAndCol(0,0) == -1)  // Streiche in work Spalte 1 und Zeile 1 (haben Index 0); Rückgabe = -1 nur wenn Fehler (hier: Nie)
+            {
+                return 1;
+            }
         }
     }
 
-    // die letzte Spalte von M ist noch nicht nach "res" kopiert weil die for-Schleife vorher abbricht, also jetzt noch:
-    M->replace(numberOfCols - 1, work);
     delete work;
-    alpha[numberOfCols - 1] = 625;
 
     // M und alpha sind jetzt in der gewünschten Form
 

@@ -580,11 +580,11 @@ int Matrix::replace(int index, Matrix* A) {
         return -1;
     }
 
-    for (int i = index; i < A->getRows(); i++) {
+    for (int i = index; i < rows; i++) {
         entries[i][index] = *(A->getEntry(i - index,0));
     }
 
-    for (int i = index; i < A->getCols(); i++) {
+    for (int i = index; i < cols; i++) {
         entries[index][i] = *(A->getEntry(0,i - index));
     }
 
