@@ -522,28 +522,28 @@ int Matrix::replaceColumn(int targetCol, Matrix A) {
     return 0;
 }
 
-void Matrix::replace(int targetCol, Matrix* A) {
-    if(targetCol < 0 || targetCol >= cols) {    // kann nicht vorkommen bei meiner Implementierung
+void Matrix::replace(int targetDiagIndex, Matrix* A) {
+    if(targetDiagIndex < 0 || targetDiagIndex >= cols) {    // kann nicht vorkommen bei meiner Implementierung
         return;
     }
-    if(A->getRows() != rows - targetCol || A->getCols() != cols - targetCol) {    // kann nicht vorkommen bei meiner Implementierung
+    if(A->getRows() != rows - targetDiagIndex || A->getCols() != cols - targetDiagIndex) {    // kann nicht vorkommen bei meiner Implementierung
         return;
     }
 
-    for (int i = targetCol; i < A->getRows(); i++) {
-        double hallo = *(A->getEntry(i - targetCol,0));
-        entries[i][targetCol] = 5;
+    for (int i = targetDiagIndex; i < A->getRows(); i++) {          //gehe zum Diagonaleintrag und ersetze ab diesem Eintrag die restliche spalte mit der ersten Spalte aus A
+        double hallo = *(A->getEntry(i - targetDiagIndex,0));
+        entries[i][targetDiagIndex] = 5;
         hallo = 4;
     }
 
-    for (int i = targetCol; i < A->getCols(); i++) {
-        entries[targetCol][i] = *(A->getEntry(0,i - targetCol));
+    for (int i = targetDiagIndex; i < A->getCols(); i++) {          //analog mit Zeile statt Spalte
+        entries[targetDiagIndex][i] = *(A->getEntry(0,i - targetDiagIndex));
     }
 }
 
 Matrix* Matrix::extractColN(int n)
 {
-    double** new_entries = new double*[rows];
+    double** new_entries = new double*[rows];       //lege Matrix mit einer Spalte an und schreibe genau die Eintraege der n-ten Spalte der Matrix hinein
     for (int i = 0; i < rows; i++)
     {
         new_entries[i] = new double[1];
