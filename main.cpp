@@ -26,6 +26,8 @@ int doStep(Matrix*, double*);
 int householder(double**, double*, int , int);
 int rw_subst(double**, double*, int, double*);
 int qtb(double**, double*, int, double*)
+string print_R(double**, double*, int);
+string print_Householder_n(double**, int);
 
 
 int main() {
@@ -280,6 +282,37 @@ int qtb(double** M, double* alpha, int n, double* b) {
 
 
 
+string print_R(double** M, double* alpha, int n) {
+    string res;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if(i > j) {
+                res += to_string(0);
+            }
+            if(i == j) {
+                res += to_string(alpha[i]);
+            }
+            res += to_string(M[i][j]) + "\t";     //haengt an den String den i-j-ten Eintrag als String gesehen an und laesst ein bisschen Platz zum naechsten
+        }
+        res += "\n";                                        //nach jeder fertigen Zeile soll er auch in die naechste wechseln
+    }
+
+    return res;
+}
+
+string print_Householder_n(double** M, int n) {
+    string res;
+
+    for(int i = 0; i < r; i++) {        //r ist Anzahl der Zeilen
+        if(i < n) {
+            continue;                   //Die Eintraege vorher werden einfach ausgelassen, da wir erst ab der Diagonale die Householdervektoren ablesen
+        }
+        res += to_string(M[i][n]) + "\t";
+    }
+
+    return res;
+}
 
 
 
