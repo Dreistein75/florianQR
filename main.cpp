@@ -71,6 +71,86 @@ int aufgabe1()
 
 int aufgabe2()
 {
+    double** M = new double*[4];
+    for (int i = 0; i < 4; i++) {
+        M[i] = new double[4];
+    }
+
+    M[0][0] = 2;
+    M[0][1] = -1;
+    M[0][2] = 3;
+    M[0][3] = 0;
+    M[1][0] = 7;
+    M[1][1] = 0;
+    M[1][2] = sqrt(2);
+    M[1][3] = 1;
+    M[2][0] = 1;
+    M[2][1] = 1;
+    M[2][2] = 1;
+    M[2][3] = 1;
+    M[3][0] = 0;
+    M[3][1] = 10;
+    M[3][2] = 3;
+    M[3][3] = 2;
+
+    double* alpha = new double[4];
+    for (int i = 0; i < 4; i++) {
+        alpha[i] = 0;
+    }
+
+    double* b = new double[4];
+    b[0] = 1;
+    for (int i = 1; i < 4; i++) {
+        b[i] = 0;
+    }
+
+    if (solve_QR(M, alpha, 4, b) == 1)
+    {
+        return 1;
+    }
+
+    headline("Aufgabe 2 * Matrix R");
+    cout << fixed << setprecision(3);
+    for (int i = 0; i < 4; i++, cout << endl)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            if (i > j) { cout  << 0. << "\t\t"; }
+            if (i == j) { cout << alpha[i] << " \t\t"; }
+            if (i < j) { cout << M[i][j] << " \t\t"; }
+        }
+    }
+
+    pause("Fuer die H-Vektoren zweimal Enter bitte");
+    headline("Aufgabe 2 * Householders");
+
+    for (int i = 0; i < 4; i++, cout << endl)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            if (i >= j) { cout  << M[i][j] << "\t\t"; }
+            if (i < j) { cout << "  \t\t"; }
+        }
+    }
+
+    pause("Fuer den Loesungsvektor x zweimal Enter bitte");
+    headline("Aufgabe 2 * Loesungsvektor x");
+
+    for (int i = 0; i < 4; i++, cout << endl)
+    {
+        cout  << b[i] << "\t\t";
+
+    }
+
+    for (int i = 0; i < 4; i++)
+    {
+        delete[] M[i];
+    }
+    delete[] M;
+    delete[] alpha;
+    delete[] b;
+
+    return 0;
 
 }
 
