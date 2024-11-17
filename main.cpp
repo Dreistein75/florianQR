@@ -4,20 +4,21 @@
 #include <limits>
 #include <cmath>
 
-//#include "Matrix.h"
 #include "Matrix.cpp"
 
 using namespace std;
 
-void headline(string);
+/*
+ * void headline(string);
 void print_matrix(int);
 void pause();
 bool yes_no_question(string);
+ */
+
 Matrix* giveMatrix();
 int sgn(double);
 double scalarProduct(Matrix*, Matrix*);
 double norm(Matrix*);
-//Berechne Householder-Vektoren  v = a - beta * e_1;    calcBeta = -sgn(a_1) norm(a)
 double calcBeta(Matrix *A);
 Matrix* betaVector(int, double);
 Matrix* calculate_householder_vector(Matrix*, double);
@@ -216,6 +217,33 @@ Matrix* giveMatrix() {
     return new Matrix(5, 3, coeff);
 }
 
+
+int rw_subst(double** A, double* alpha, int n, double* b)
+{
+    for(int i = n - 1 ; i >= 0; i--)
+    {
+        double sum = 0;
+        if(alpha[i] == 0)   // Wenn Diagonale == 0 --> nicht lösbar
+        {
+            return 1;
+        }
+        for(int j = n - 1; j > i; j--)
+        {
+            sum += A[i][j] * b[j];
+        }
+        b[i] = (b[i] - sum) / alpha[i];
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+/*
 void headline(string text) {
     system("clear");                    //funktioniert nur auf linux (Windows cls) loescht screen einmal
     cout << "\n\t" << text << "\n\t";
@@ -240,22 +268,4 @@ void pause() {
     cin.ignore(numeric_limits<streamsize>::max(), '\n');        //Man muss also zuerst Enter druecken, um weiterzumachen
     cin.get();
 }
-
-int rw_subst(double** A, double* alpha, int n, double* b)
-{
-    for(int i = n - 1 ; i >= 0; i--)
-    {
-        double sum = 0;
-        if(alpha[i] == 0)   // Wenn Diagonale == 0 --> nicht lösbar
-        {
-            return 1;
-        }
-        for(int j = n - 1; j > i; j--)
-        {
-            sum += A[i][j] * b[j];
-        }
-        b[i] = (b[i] - sum) / alpha[i];
-    }
-
-    return 0;
-}
+ */
