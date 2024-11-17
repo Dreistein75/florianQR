@@ -12,6 +12,7 @@ private:                //alles was nur innerhalb der Klasse Matrix benutzt wird
     bool isZeroCol(int, int);
 
     int countZeroLines();
+    void cleanUpEntries();
 
 public:
     Matrix(int, int, double**);
@@ -39,7 +40,8 @@ public:
     void subtractCol(int, int, double);
 
     Matrix* attach(int, int, double);       //wuerde fuer elementarteilerform benutzt werden
-    Matrix* cancelRowAndCol(int, int);
+    // Matrix* cancelRowAndCol(int, int);
+    int cancelRowAndCol(int, int);
     Matrix* zsf();
     Matrix* elementary_form();              //Code nicht fertig ausgereift, da leider keine Zeit mehr und es hier bei double als Koerper eh keinen Sinn ergibt sie zu bilden
     Matrix* inverse();
@@ -52,7 +54,7 @@ public:
     double* getEntry(int, int);
 
     int replaceColumn(int, Matrix);
-    void replace(int, Matrix*);
+    int replace(int, Matrix*);
 
     static Matrix unit_vector(int n) {
         double** etr = new double*[n];

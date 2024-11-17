@@ -1,101 +1,128 @@
-#include <iostream>
-#include <string>
-#include <cstdlib>
-#include <limits>
-#include <cmath>
-
-//#include "Matrix.h"
-#include "Matrix.cpp"
+#include "main.h"
 
 using namespace std;
 
-void headline(string);
-void print_matrix(int);
-void pause();
-bool yes_no_question(string);
-Matrix* giveMatrix();
-int sgn(double);
-double scalarProduct(Matrix*, Matrix*);
-double norm(Matrix*);
-//Berechne Householder-Vektoren  v = a - beta * e_1;    calcBeta = -sgn(a_1) norm(a)
-double calcBeta(Matrix *A);
-Matrix* betaVector(int, double);
-Matrix* calculate_householder_vector(Matrix*, double);
-int doStep(Matrix*, double*);
-int householder(double**, double*, int , int);
-int rw_subst(double**, double*, int, double*);
-
-
-int main() {
-
-
-    Matrix* A = giveMatrix();
-    // Matrix* a = extractFirstCol(A);
-    //
-    // cout << A->print();
-    // cout << a->print();
-    // cout << norm(a) << endl;
-    // cout << calcBeta(a) << endl << endl;
-    //
+int florian()
+{
     double** M = new double*[5];
     for (int i = 0; i < 5; i++) {
         M[i] = new double[3];
     }
 
-    for (int i = 0; i < 5; i++) {
-        for (int j = 0; j < 3; j++) {
-            M[i][j] = *(A->getEntry(i,j));
-        }
-    }
+    M[0][0] = 2;
+    M[0][1] = sqrt(5);
+    M[0][2] = 0;
+    M[1][0] = 2;
+    M[1][1] = 3;
+    M[1][2] = -1;
+    M[2][0] = 2;
+    M[2][1] = 3;
+    M[2][2] = -1;
+    M[3][0] = 2;
+    M[3][1] = 0;
+    M[3][2] = -1;
+    M[4][0] = 0;
+    M[4][1] = sqrt(7);
+    M[4][2] = 15/sqrt(7);
 
     double* alpha = new double[5];
     for (int i = 0; i < 5; i++) {
         alpha[i] = 0;
     }
 
-    cout << householder(M, alpha, 3, 5);
+    householder(M, alpha, 3, 5);
 
-    auto foo = new Matrix(5,3,M);
-    cout << foo->print();
+    auto A = new Matrix(5, 3, M);
+    cout << A->print() << endl;
+    delete A;
+
+
+    // for (int i = 0; i < 5; i++)
+    // {
+    //     delete[] M[i];
+    // }
+    // delete[] M;
+    delete[] alpha;
+
     return 0;
 }
 
-int householder(double** M, double* alpha, int n, int m) {
-    Matrix* A = new Matrix(n, m, M);
-    Matrix* res = new Matrix(*A);
-    double beta = 0;
+int main() {
 
-    for(int i = 0; i < m - 1; i++) {    // endet bei vorletzter Spalte da in letzter Spalte nichts zu tun
-        if(doStep(A, &beta) == -1) {
-            return 1;
+    return florian();
+}
+
+int householder(Matrix* M, double* alpha)
+{
+    /*
+     * Strategie: Ein Arbeitsschritt arbeitet mit Zeile 1 und Spalte 1. Wenn das fertig ist, schneiden wir
+     * die erste Zeile und Spalte weg, erhalten eine kleinere Matrix und fangen wieder von vorne an.
+     * Damit wir durch das wegschneiden nix verlieren: Ich erstelle eine Matrix "working" die eine Kopie von M ist mithilfe
+     * des Kopierkonstruktors. Ich führe dann alle Arbeitsschritte mit "work" durch anstatt mit M und direkt
+     * vor dem Wegschneiden von Spalte 1 udn Zeile 1 von work überschreibe ich meine Hauptmatrix (ist auch die Ergebnismatrix) M
+     * indem ich die entsprechende Spalte/Zeile von "work" an die richtige Stelle von M schreibe.
+     * Genauerer Kommentar zum überschreiben kommt an der Stelle wo ich überschreibe.
+     * */
+
+    Matrix* work = new Matrix(*M);
+    const int numberOfCols = M->getCols();
+    double beta;    // Variable für den Diagonaleintrag im i-ten Schritt (s.u.); wird nach Berechnung in Vektor alpha gespeichert
+
+    for (int i = 0; i < numberOfCols - 1; i++)    // endet bei vorletzter Spalte da in letzter Spalte nichts zu tun
+    {
+        // Folgende Zeile macht den Arbeitsschritt des Algorithmus angewandt auf "work" und überschreibt dabei "work" und überschreibt beta
+        // deswegen wird auch die Adresse von beta übergeben, nicht beta als Wert. Das "stepResult" ist -1 bei Fehlern
+        // weil ich das so gewohnt bin MINUS 1 zu benutzen und sonst 0
+
+        int stepResult = doStep(work, &beta);
+        if (stepResult == -1)
+        {
+            return 1;   // Laut Aufgabenblatt müssen wir bei Fehlern eine Plus 1 returnen
         }
 
         alpha[i] = beta;
-        res->replace(i, A);     // ersetzt in Matrix "res" ab dem Diagonaleintrag (i,i) die Restzeile und Restspalte durch die erste Zeile/Spalte von Matrix A
-        Matrix* tmp = A->cancelRowAndCol(0,0);
-        delete A;
-        A = tmp;
-    }
 
-    // if(doStep(A, &beta) == -1) {   // da wir aus der for-Schleife raus sind: A hat jetzt nur noch 1 Spalte und mit der rufen wir doStep auf
-    //     return 1;
-    // }
-    // alpha[m - 1] = beta;
-    // res->replace(m - 1, A);
-    // Berechne beta für letzte Spalte
-    // Streiche A[0,0] und überschreibe
+        // M wurde in doStep() überschrieben. Speichern wollen wir die erste Spalte/Zeile von M bevor wir sie dann
+        // wegschneiden und die for-Schleife von vorne beginnen mit einem M das kleiner ist weil wir weggeschnitten
+        // haben.
 
-    delete A;
+        if (M->replace(i, work) == -1)
+        {
+            // die replace()-Methode überschreibt in Matrix "res" folgende Einträge:
+            // Vom Diagonaleintrag (i,i) senkrecht runter wird ersetzt durch die erste Spalte von M
+            // und vom Diagonaleintrag (i,i) wird waagrecht nach rechts ersetzt durch erste Zeile von M
+            // Der Rückgabewert ist -1 wenn was schief läuft (was es bei sinnvollen Eingaben nicht tut!)
 
-    // res ist jetzt das Ergebnis. Müssen aber M überschreiben, also mach ich das jetzt:
-    for (int i = 0; i < m; i++) {
-        for (int j = 0; j < n; j++) {
-            M[i][j] = *(res->getEntry(i,j));
+            return 1;
+        }
+
+        if (work->cancelRowAndCol(0,0) == -1)  // Streiche in M Spalte 1 und Zeile 1 (haben Index 0); Rückgabe = -1 nur wenn Fehler (hier: Nie)
+        {
+            return 1;
         }
     }
-    delete res;
+
+    // die letzte Spalte von M ist noch nicht nach "res" kopiert weil die for-Schleife vorher abbricht, also jetzt noch:
+    M->replace(numberOfCols - 1, work);
+    delete work;
+    alpha[numberOfCols - 1] = 625;
+
+    // M und alpha sind jetzt in der gewünschten Form
 
     return 0;
+}
+
+int householder(double** M, double* alpha, int n, int m) {  // suboptimale Funktionsparameter Reihenfolge da jetzt erst Spalten-, dann Zeilen-Zahl übergeben wird
+    // Da ich mit Matrizen arbeiten möchte (war meine Vertiefung im C-Kurs), wandle ich das double** array
+    // in eine Matrix um, mache dann die ganze Arbeit und wandle dann zurück um die Signatur dieser
+    // Funktion hier so zu lassen wie sie laut Angabe sein soll
+
+    Matrix* A = new Matrix(m, n, M);    // erstelle (mxn)-Matrix mit Einträgen gespeichert aus M
+
+    // Rufe nun die householder(Matrix*, double*) Funktion auf. Da alles mit pointern gelöst wird überschreibt sie bereits
+    // das double**-Array M wie gewünscht, also ich danach nichts mehr zu tun und wir leiten den Rückgabewert einfach weiter
+
+    return householder(A, alpha);
 }
 
 int doStep(Matrix* A, double* beta) {

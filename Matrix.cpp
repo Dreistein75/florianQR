@@ -7,6 +7,11 @@ Matrix::Matrix(int r, int c, double** etrs) {               //konstruktor mit an
 }
 
 Matrix::~Matrix() {                         //Destruktor, der dann im Code verantwortlich ist, die nicht mehr genutzten Matrizen zu loeschen
+    cleanUpEntries();
+}
+
+void Matrix::cleanUpEntries()
+{
     for (int i = 0; i < rows; i++) {
         delete[] entries[i];                //zuerst Inhalte (der Spalten) loeschen
     }
@@ -160,14 +165,52 @@ Matrix* Matrix::operator/(Matrix rhs) {
     return *this * *rhs.inverse();                      //Matrizendivision ist Matrizenmultiplikation mit dem Inversen
 }
 
+// Matrix* Matrix::cancelRowAndCol(int r, int c) {
+//     int new_rows = rows - 1;                                //neue Matrix rows und cols 1 niedriger wegen wegstreichen einer Zeile bzw. Spalte
+//     int new_cols = cols - 1;
+//
+//     double** new_entries = new double*[new_rows];
+//     for (int i = 0; i < new_rows; i++) {                    //Matrix der passenden Groesse erstellen
+//         new_entries[i] = new double[cols];
+//     }
+//
+//     for (int i = 0; i < rows; i++) {
+//         for (int j = 0; j < cols; j++) {                    //alle faelle werden abgedeckt (bei i = r oder j = c wird nichts gemacht also diese eben ausgelassen wie gewuenscht
+//             if (i < r && j < c) {
+//                 new_entries[i][j] = entries[i][j];          //bis 1 vor gestrichener Zeile und Spalte copy paste alte Matrix
+//             }
+//
+//             if (i < r && j > c) {
+//                 new_entries[i][j - 1] = entries[i][j];      //falls aktuelle Spalte von alter Matrix groesser als gestrichene soll das der naechste Eintrag sein in der neuen
+//             }
+//
+//             if (i > r && j < c) {
+//                 new_entries[i - 1][j] = entries[i][j];      //gleiches mit Zeilen
+//             }
+//
+//             if (i > r && j > c) {
+//                 new_entries[i - 1][j - 1] = entries[i][j];  //gleiches kombiniert Reihen und Zeilen
+//             }
+//                                                             //insgesamt wird also die i-j-ten Eintraege ausgelassen und damit auch die Matrix verkleinert (Eintraege kopiert)
+//         }
+//     }
+//
+//     return new Matrix(new_rows, new_cols, new_entries);
+// }
 
+int Matrix::cancelRowAndCol(int r, int c) {
+    // wir erstellen temporär die kleinere Matrix und überschreiben uns dann am Ende mit der kleineren
 
-Matrix* Matrix::cancelRowAndCol(int r, int c) {
-    int new_rows = rows - 1;                                //neue Matrix rows und cols 1 niedriger wegen wegstreichen einer Zeile bzw. Spalte
+    if (r < 0 || c < 0 || r >= rows || c >= cols)
+    {
+        return -1;
+    }
+
+    int new_rows = rows - 1;
     int new_cols = cols - 1;
 
     double** new_entries = new double*[new_rows];
-    for (int i = 0; i < new_rows; i++) {                    //Matrix der passenden Groesse erstellen
+    for (int i = 0; i < new_rows; i++) {
         new_entries[i] = new double[cols];
     }
 
@@ -188,11 +231,18 @@ Matrix* Matrix::cancelRowAndCol(int r, int c) {
             if (i > r && j > c) {
                 new_entries[i - 1][j - 1] = entries[i][j];  //gleiches kombiniert Reihen und Zeilen
             }
-                                                            //insgesamt wird also die i-j-ten Eintraege ausgelassen und damit auch die Matrix verkleinert (Eintraege kopiert)
+            //insgesamt wird also die i-j-ten Eintraege ausgelassen und damit auch die Matrix verkleinert (Eintraege kopiert)
         }
     }
 
-    return new Matrix(new_rows, new_cols, new_entries);
+    // bevor wir den pointer "entries" überschreiben müssen wir den Speicherplatz dort freigeben:
+    cleanUpEntries();
+
+    rows = new_rows;
+    cols = new_cols;
+    entries = new_entries;
+
+    return 0;
 }
 
 int plus_minus(int x) {
@@ -219,7 +269,7 @@ double* Matrix::det() {
         //entries[i][0] gibt dann jeweiligen Eintrag an (dabei wird bei der Matrix diese Zeile und diese Spalte gestrichen und dessen Determinante berechnet
         // -> rekursiv Bedingung von oben fuer 1x1 greift)
         //insgesamt also Determinante von der gestrichenen Matrix multipliziert mit dem jeweiligen Eintrag und dem jeweiligen Vorzeichen
-        *res += *(cancelRowAndCol(i, 0)->det()) * plus_minus(i) * entries[i][0];
+        // *res += *(cancelRowAndCol(i, 0)->det()) * plus_minus(i) * entries[i][0];
     }
 
     return res;
@@ -274,7 +324,7 @@ Matrix* Matrix::adjoint() {     //Adjungierte A^(ad) ist diejenige Matrix zu A, 
         for (int j = 0; j < cols; j++) {
             //jeden Eintrag ueber Regel einfach bestimmen
             //i-te Zeile und j-te Spalte streichen; Determinante davon berechnen; Vorzeichen bestimmen
-            new_entries[i][j] = (*cancelRowAndCol(i, j)->det() * plus_minus(i + j));
+            // new_entries[i][j] = (*cancelRowAndCol(i, j)->det() * plus_minus(i + j));
         }
     }
     auto tmp = new Matrix(rows, cols, new_entries);
@@ -362,7 +412,7 @@ void Matrix::subtractCol(int targetCol, int sourceCol, double factor) {
         return;                                                     //analog
     }
 
-    for (int i = 0; i < cols; i++) {
+    for (int i = 0; i < rows; i++) {
         entries[i][targetCol] -= factor * entries[i][sourceCol];
     }
 }
@@ -522,23 +572,23 @@ int Matrix::replaceColumn(int targetCol, Matrix A) {
     return 0;
 }
 
-void Matrix::replace(int targetCol, Matrix* A) {
-    if(targetCol < 0 || targetCol >= cols) {    // kann nicht vorkommen bei meiner Implementierung
-        return;
+int Matrix::replace(int index, Matrix* A) {
+    if(index < 0 || index >= cols) {    // kann nicht vorkommen bei meiner Implementierung (und wir wissen dass rows >= cols!)
+        return -1;
     }
-    if(A->getRows() != rows - targetCol || A->getCols() != cols - targetCol) {    // kann nicht vorkommen bei meiner Implementierung
-        return;
-    }
-
-    for (int i = targetCol; i < A->getRows(); i++) {
-        double hallo = *(A->getEntry(i - targetCol,0));
-        entries[i][targetCol] = 5;
-        hallo = 4;
+    if(A->getRows() != rows - index || A->getCols() != cols - index) {    // kann nicht vorkommen bei meiner Implementierung
+        return -1;
     }
 
-    for (int i = targetCol; i < A->getCols(); i++) {
-        entries[targetCol][i] = *(A->getEntry(0,i - targetCol));
+    for (int i = index; i < A->getRows(); i++) {
+        entries[i][index] = *(A->getEntry(i - index,0));
     }
+
+    for (int i = index; i < A->getCols(); i++) {
+        entries[index][i] = *(A->getEntry(0,i - index));
+    }
+
+    return 0;
 }
 
 Matrix* Matrix::extractColN(int n)
