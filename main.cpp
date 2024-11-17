@@ -30,13 +30,7 @@ int main() {
 
 
     Matrix* A = giveMatrix();
-    // Matrix* a = extractFirstCol(A);
-    //
-    // cout << A->print();
-    // cout << a->print();
-    // cout << norm(a) << endl;
-    // cout << calcBeta(a) << endl << endl;
-    //
+
     double** M = new double*[5];
     for (int i = 0; i < 5; i++) {
         M[i] = new double[3];
