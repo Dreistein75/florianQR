@@ -25,6 +25,7 @@ Matrix* calculate_householder_vector(Matrix*, double);
 int doStep(Matrix*, double*);
 int householder(double**, double*, int , int);
 int rw_subst(double**, double*, int, double*);
+int qtb(double**, double*, int, double*)
 
 
 int main() {
@@ -237,6 +238,45 @@ int rw_subst(double** A, double* alpha, int n, double* b)
     return 0;
 }
 
+int qtb(double** M, double* alpha, int n, double* b) {
+    double** b_etrs = new double*[n];
+    for (int i = 0; i < n; i++) {
+        b_etrs[i] = new double[1];
+        b_etrs[i][0] = b[i];
+    }
+
+    Matrix* A = new Matrix(n, n, M);
+    Matrix* b_tmp = new Matrix(n, 1, b_etrs);
+    Matrix* res = new Matrix(*b_tmp);
+    for(int i = 0; i < n - 1; i++) {
+        Matrix* v_house = A->extractColN(0);
+        double factor = 2 * scalarProduct(v_house, b_tmp) / norm(v_house);
+        b_tmp = b_tmp - v_house->scale(factor);
+
+        res->replace(i, b_tmp);     //ersetzt alles ab dem Eintrag i nach unten
+        Matrix* tmp = b_tmp->cancelRow(0);          //streicht die erste Zeile also den ersten Eintrag, damit wir den kleineren Vektor b_tmp betrachten koennen zum iterieren
+        delete b_tmp;
+        b_tmp = tmp;
+
+        Matrix* A_smaller = A->cancelRowAndCol(0,0);        //Matrix wird kleiner, damit wieder die Householdervektoren der richtigen Groesse extracted werden koennen
+        delete A;
+        A = A_smaller;
+    }
+    delete b_tmp;
+    delete A;
+
+    //res ist jetzt daqs Ergebnis. Muessen aber b ueberschreiben, als mahc ihc das jetzt:
+    for(int i = 0; i < n; i++) {
+        b[i] = *(res->getEntry(i,0));
+    }
+
+    delete res;
+    delete A;
+
+    //Habe definitiv noch memory leaks mit b_etrs
+
+    return 0;
+}
 
 
 

@@ -40,6 +40,7 @@ public:
 
     Matrix* attach(int, int, double);       //wuerde fuer elementarteilerform benutzt werden
     Matrix* cancelRowAndCol(int, int);
+    Matrix* cancleRow(int);
     Matrix* zsf();
     Matrix* elementary_form();              //Code nicht fertig ausgereift, da leider keine Zeit mehr und es hier bei double als Koerper eh keinen Sinn ergibt sie zu bilden
     Matrix* inverse();

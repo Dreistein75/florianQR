@@ -195,6 +195,31 @@ Matrix* Matrix::cancelRowAndCol(int r, int c) {
     return new Matrix(new_rows, new_cols, new_entries);
 }
 
+Matrix* Matrix::cancleRow(int n) {
+    int new_rows = rows - 1;                                //neue Matrix rows niedriger wegen wegstreichen einer Zeile
+
+    double** new_entries = new double*[new_rows];
+    for (int i = 0; i < new_rows; i++) {                    //Matrix der passenden Groesse erstellen
+        new_entries[i] = new double[cols];
+    }
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {                    //alle faelle werden abgedeckt (bei i = r oder j = c wird nichts gemacht also diese eben ausgelassen wie gewuenscht
+            if (i < r) {
+                new_entries[i][j] = entries[i][j];          //bis 1 vor gestrichener Zeile copy paste alte Matrix
+            }
+
+            if (i > r) {
+                new_entries[i - 1][j] = entries[i][j];      //gleiches mit Zeilen
+            }
+
+            //insgesamt wird also die i-ten Eintraege ausgelassen und damit auch die Matrix verkleinert (Eintraege kopiert)
+        }
+    }
+
+    return new Matrix(new_rows, cols, new_entries);
+}
+
 int plus_minus(int x) {
     if (x % 2 == 0) {
         return 1;               //wird benoetigt fuer Vorzeichen bei Determinante/Adjungierte etc. vgl Formel (-1)^(i+j)*...
