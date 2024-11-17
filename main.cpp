@@ -55,6 +55,20 @@ int main() {
 }
 
 int householder(double** M, double* alpha, int n, int m) {
+    /*Strategie:
+     * Kopieren EingabeMatrix in A und in res
+     * fuehre den ersten Schritt durch
+     * Hier wird erste Spalte von A durch Householdervektor ersetzt
+     * Dann wird von den restlichen Spalten in A das nach der Formel jeweils richtige Vielfache abgezogen
+     * Dann wird res als die veraenderte von A gespeichert
+     * nun wird die erste Zeile und erste Spalte von A gestrichen
+     * Dann wird analog bei der Veraenderung der neuen Matrix A vorgegangen
+     * Nun soll die erste Zeile und erste Spalte von der neuen wiederum veraenderten Matrix in res gespeichert werden
+     * Dazu ueberschreibt man genau die Zeile i und Spalte i von res ab dem Diagonalelement (i,i) (so wird dann auch richtige Groesse sichergestellt
+     * Der letzte Schritt ist dann genau wie in der VL diesen Prozess einmal noch durchzufuehren bei der Matrix-Groesse 2xk
+     * (fuer k der Groesse entsprechend der Reduktion durch Algorithmus)
+     * */
+
     Matrix* A = new Matrix(n, m, M);
     Matrix* res = new Matrix(*A);
     double beta = 0;
