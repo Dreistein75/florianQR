@@ -1,14 +1,15 @@
 #include <iostream>
-#include <string>
+#include <cstring>
 #include <cstdlib>
 #include <limits>
 #include <cmath>
+#include <iomanip>
 
 #include "Matrix.cpp"
 
 void headline(string);
 void print_matrix(int);
-void pause();
+void pause(string);
 bool yes_no_question(string);
 Matrix* giveMatrix();
 int sgn(double);
@@ -22,3 +23,5 @@ int doStep(Matrix*, double*);
 int householder(double**, double*, int , int);
 int householder(Matrix*, double*);
 int rw_subst(double**, double*, int, double*);
+int qtb(double**, double*, int, double*);
+int solve_QR(double**, double*, int, double*);

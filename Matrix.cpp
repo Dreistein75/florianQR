@@ -7,11 +7,6 @@ Matrix::Matrix(int r, int c, double** etrs) {               //konstruktor mit an
 }
 
 Matrix::~Matrix() {                         //Destruktor, der dann im Code verantwortlich ist, die nicht mehr genutzten Matrizen zu loeschen
-    cleanUpEntries();
-}
-
-void Matrix::cleanUpEntries()
-{
     for (int i = 0; i < rows; i++) {
         delete[] entries[i];                //zuerst Inhalte (der Spalten) loeschen
     }
@@ -236,13 +231,36 @@ int Matrix::cancelRowAndCol(int r, int c) {
     }
 
     // bevor wir den pointer "entries" überschreiben müssen wir den Speicherplatz dort freigeben:
-    cleanUpEntries();
+    this->~Matrix();
 
     rows = new_rows;
     cols = new_cols;
     entries = new_entries;
 
     return 0;
+}
+
+int Matrix::cancelFirstRow()
+{
+    if (rows < 2)
+    {
+        return -1;
+    }
+
+    int new_rows = rows - 1;
+    double** new_entries = new double*[new_rows];
+    for (int i = 0; i < new_rows; i++)
+    {
+        new_entries[i] = new double[cols];
+        for (int j = 0; j < cols; j++)
+        {
+            new_entries[i][j] = entries[i+1][j];
+        }
+    }
+
+    this->~Matrix();        // das hier gibt den Speicher der alten Entries frei
+    entries = new_entries;
+    rows = new_rows;
 }
 
 int plus_minus(int x) {

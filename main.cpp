@@ -2,7 +2,7 @@
 
 using namespace std;
 
-int florian()
+int aufgabe1()
 {
     double** M = new double*[5];
     for (int i = 0; i < 5; i++) {
@@ -30,26 +30,52 @@ int florian()
         alpha[i] = 0;
     }
 
-    householder(M, alpha, 3, 5);
+    if (householder(M, alpha, 3, 5) == 1)
+    {
+        return 1;
+    }
 
-    auto A = new Matrix(5, 3, M);
-    cout << A->print() << endl;
-    delete A;
+    headline("Aufgabe 1 * Matrix R");
+    cout << fixed << setprecision(3);
+    for (int i = 0; i < 5; i++, cout << endl)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            if (i > j) { cout  << 0. << "\t\t"; }
+            if (i == j) { cout << alpha[i] << " \t\t"; }
+            if (i < j) { cout << M[i][j] << " \t\t"; }
+        }
+    }
 
+    pause("Fuer die H-Vektoren zweimal Enter bitte");
+    headline("Aufgabe 1 * Householders");
 
-    // for (int i = 0; i < 5; i++)
-    // {
-    //     delete[] M[i];
-    // }
-    // delete[] M;
+    for (int i = 0; i < 5; i++, cout << endl)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            if (i >= j) { cout  << M[i][j] << "\t\t"; }
+            if (i < j) { cout << "  \t\t"; }
+        }
+    }
+
+    for (int i = 0; i < 5; i++)
+    {
+        delete[] M[i];
+    }
+    delete[] M;
     delete[] alpha;
 
     return 0;
 }
 
-int main() {
+int aufgabe2()
+{
 
-    return florian();
+}
+
+int main() {
+    return aufgabe1();
 }
 
 int householder(Matrix* M, double* alpha)
@@ -246,16 +272,8 @@ void headline(string text) {
     cout << "\n\n";
 }
 
-void print_matrix(Matrix* A) {
-    headline("Ergebnis");
-
-    cout << A->print() << "\n\n\n";          //Matrix ausgeben
-
-    pause();
-}
-
-void pause() {
-    cout << endl << "Druecke <Enter>, um weiterzumachen...";            //Ziel ist, dass einfach in Ruhe der Output gelesen werden kann.
+void pause(string msg) {
+    cout << endl << msg;            //Ziel ist, dass einfach in Ruhe der Output gelesen werden kann.
     cin.ignore(numeric_limits<streamsize>::max(), '\n');        //Man muss also zuerst Enter druecken, um weiterzumachen
     cin.get();
 }
@@ -273,8 +291,70 @@ int rw_subst(double** A, double* alpha, int n, double* b)
         {
             sum += A[i][j] * b[j];
         }
-        b[i] = (b[i] - sum) / alpha[i];
+        b[i] = (b[i] - sum) / alpha[i];     // Nenner ungleich Null
     }
 
     return 0;
+}
+
+int qtb(double** M, double* alpha, int n, double* b) {  // wir brauchen kein alpha aber laut Blatt muss ich es in der Signatur haben: okay.
+    // mache aus b einen Vektor (aka eine nx1-Matrix):
+    double** b_etrs = new double*[n];
+    for (int i = 0; i < n; i++) {
+        b_etrs[i] = new double[1];
+        b_etrs[i][0] = b[i];
+    }
+    Matrix* b_vect = new Matrix(n, 1, b_etrs);
+
+    Matrix* A = new Matrix(n, n, M);
+    Matrix* B = new Matrix(*A);     // Eine Kopie von A damit wir beim Streichen von Zeilen/Spalten unser M nicht kaputt machen --> wir arbeiten nur mit B
+
+    // Matrix* res = new Matrix(*b_vect);
+    for(int i = 0; i < n; i++) {
+        Matrix* v_house = B->extractColN(0);
+        double factor = 2 * scalarProduct(v_house, b_vect) / scalarProduct(v_house, v_house);       // Nenner ungleich Null
+
+        //mach das schöner:
+        Matrix* scaled_householder = v_house->scale(factor);
+        Matrix* tmp_res = (*b_vect) - (*scaled_householder);
+
+        delete v_house;
+        delete scaled_householder;
+        delete b_vect;
+        b_vect = tmp_res;
+
+        b[i] = *(b_vect->getEntry(0,0));
+
+        b_vect->cancelFirstRow();          //streicht die erste Zeile also den ersten Eintrag, damit wir den kleineren Vektor b_tmp betrachten koennen zum iterieren
+
+        B->cancelRowAndCol(0,0);        //Matrix wird kleiner, damit wieder die Householdervektoren der richtigen Groesse extracted werden können
+    }
+    delete b_vect;
+    delete B;
+
+    return 0;
+}
+
+int solve_QR(double** M, double* alpha, int n, double* b)
+{
+    if (householder(M, alpha, n, n) == 1)
+    {
+        return 1;
+    }
+
+    if (qtb(M, alpha, n, b) == 1)
+    {
+        return 1;
+    }
+
+    if (rw_subst(M, alpha, n, b) == 1)
+    {
+        return 1;
+    }
+
+    return 0;
+
+
+    // Fun fact: Diese gesamte Funktion is äquivalent zu:
+    return (householder(M, alpha, n, n) == 1) || (qtb(M, alpha, n, b) == 1) || (rw_subst(M, alpha, n, b) == 1);
 }
